@@ -32,20 +32,24 @@ class Scanner(object):
         print(f'---------- Port is closed ----------')
 
     def start(self, tag_length):
+        print(f'Start reading')
         self.work = True
-        with open("data.txt", "w") as f:
+        with open("data.txt", "w", encoding='utf-8') as self.file:
             old_tag = None
             while self.work:
                 tag = ""
-                raw_data = self.connector.read(tag_length)
-                raw_tag = raw_data[4:tag_length+4]
-                for i in range(len(raw_tag)):
-                    tag = tag + hex(raw_tag[i])
-                if tag != old_tag:
+                raw_data = self.connector.read(tag_length + 6)
+                if (len(raw_data) < tag_length + 4):
+                    continue
+                tag = raw_data[4:11]
+                if tag != old_tag and len(tag) != 0:
+                    old_tag = tag
                     record = f'{datetime.datetime.now()} ---> tag: {tag}'
-                    f.write(record)
+                    print(f'record= {record}')
+                    print(record, file=self.file, end='\n')
 
     def stop(self):
         self.work = False
         self.closePort()
+        self.file.close()
 
